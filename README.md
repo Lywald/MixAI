@@ -65,7 +65,7 @@ python mixai.py
 
 3. To use the chat:
    - Type a message and press Enter or click Send to get responses from all AIs
-   - Use @claude, @gpt, or @gemini followed by your message to target a specific AI
+   - Use @all, @claude, @gpt, or @gemini followed by your message to target a specific AI
    - Previous conversation context is maintained for all AIs
 
 Example commands:
