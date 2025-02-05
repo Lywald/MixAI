@@ -2,7 +2,10 @@
 
 MixAI is a desktop application that enables simultaneous interaction with multiple AI models (Claude, GPT-4, and Gemini) in a unified chat interface. It allows users to communicate with all models at once or target specific AI assistants for specialized responses.
 
-![image](https://github.com/user-attachments/assets/95253582-7385-493c-84fe-1bf6562151c6)
+![image](https://github.com/user-attachments/assets/f20b1f1a-0023-4a18-84ed-8c7fba9e0fe6)
+
+
+![image](https://github.com/user-attachments/assets/08454301-df0a-4fab-b159-e152cfcaf959)
 
 
 ## Features
