@@ -29,10 +29,10 @@ class MixAI:
     def __init__(self):
         """Initialize the MixAI class with hardcoded API keys."""
         self.conversation_history = []
-        # Initialize clients immediately with hardcoded keys
-        self.claude = anthropic.Anthropic(api_key="...") # Replace "..." with your API key (Anthropic Claude)
-        self.gpt = OpenAI(api_key="...") # Replace "..." with your API key (OpenAI GPT)
-        genai.configure(api_key="...") # Replace "..." with your API key (Google Gemini)
+        # Initialize with your API keys
+        self.claude = anthropic.Anthropic(api_key="ADD YOUR KEY HERE")  # Get from: https://console.anthropic.com/
+        self.gpt = OpenAI(api_key="ADD YOUR KEY HERE")  # Get from: https://platform.openai.com/api-keys
+        genai.configure(api_key="ADD YOUR KEY HHERE")  # Get from: https://makersuite.google.com/app/apikey
         self.gemini = genai
 
     def process_message(self, user_input: str) -> Dict:
@@ -105,12 +105,12 @@ Current message:
 User: {user_input}
 Claude: {conversation_entry.get('claude_response', '')}
 
-Please provide your response to this conversation:"""
+You are GPT-4. Remember to respond as yourself, not as Claude or Gemini. Please provide your response to this conversation:"""
                 
                 gpt_completion = self.gpt.chat.completions.create(
-                    model="gpt-4", # Change here the GPT model if you so desire
+                    model="gpt-4",
                     messages=[
-                        {"role": "system", "content": "You are GPT, participating in a conversation with two other AI assistants (Claude and Gemini) and a human user."},
+                        {"role": "system", "content": "You are GPT-4. Never impersonate Claude or Gemini. Always maintain your own identity when responding. You are participating in a conversation with two other AI assistants (Claude and Gemini) and a human user."},
                         {"role": "user", "content": gpt_prompt}
                     ]
                 )
@@ -149,6 +149,7 @@ class MixAIGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.mix_ai = MixAI()  # Initialize with hardcoded keys
+        self.worker = None  # Initialize worker as None
         self.initUI()
 
     def initUI(self):
@@ -164,7 +165,13 @@ class MixAIGUI(QMainWindow):
         # Chat display
         self.chat_display = QTextEdit()
         self.chat_display.setReadOnly(True)
-        self.chat_display.setStyleSheet("background-color: white;")
+        self.chat_display.setStyleSheet("""
+            QTextEdit {
+                background-color: white;
+                font-family: monospace;
+                font-size: 10pt;
+            }
+        """)
         layout.addWidget(self.chat_display)
 
         # User input
@@ -182,14 +189,25 @@ class MixAIGUI(QMainWindow):
         self.statusBar().showMessage('Ready to chat!')
 
     def send_message(self):
+        if self.worker is not None and self.worker.isRunning():
+            return  # Prevent multiple simultaneous requests
+            
         user_input = self.user_input.text()
         if not user_input:
             return
 
-        self.chat_display.append(f"\nYou: {user_input}\n")
+        # Add user message in black with proper formatting
+        html_content = self.chat_display.toHtml()
+        html_content += f'<br><div style="color: black; white-space: pre-wrap;">You: {user_input}</div><br>'
+        self.chat_display.setHtml(html_content)
+        self.chat_display.verticalScrollBar().setValue(
+            self.chat_display.verticalScrollBar().maximum()
+        )  # Scroll to bottom
+        
         self.user_input.clear()
         self.statusBar().showMessage('Processing message...')
         self.send_button.setEnabled(False)
+        self.user_input.setEnabled(False)  # Disable input while processing
 
         # Create and start worker thread
         self.worker = AIWorker(self.mix_ai, user_input)
@@ -198,16 +216,46 @@ class MixAIGUI(QMainWindow):
         self.worker.start()
 
     def handle_response(self, response):
-        self.chat_display.append(f"Claude: {response['claude_response']}\n")
-        self.chat_display.append(f"GPT: {response['gpt_response']}\n")
-        self.chat_display.append(f"Gemini: {response['gemini_response']}\n")
-        self.statusBar().showMessage('Ready')
-        self.send_button.setEnabled(True)
+        try:
+            def format_message(text):
+                text = text.replace('\n', '<br>')
+                text = text.replace(' ', '&nbsp;')
+                text = text.replace('&nbsp;&nbsp;&nbsp;', '   ')  # Fix triple spaces
+                return text
+
+            # Add responses with colors and proper formatting
+            html_content = self.chat_display.toHtml()
+            html_content += f'<div style="color: #2E8B57; white-space: pre-wrap;">{format_message(response["claude_response"])}</div><br>'
+            html_content += f'<div style="color: #FF4500; white-space: pre-wrap;">{format_message(response["gpt_response"])}</div><br>'
+            html_content += f'<div style="color: #4169E1; white-space: pre-wrap;">{format_message(response["gemini_response"])}</div><br>'
+            
+            self.chat_display.setHtml(html_content)
+            self.chat_display.verticalScrollBar().setValue(
+                self.chat_display.verticalScrollBar().maximum()
+            )  # Scroll to bottom
+        except Exception as e:
+            print(f"Error in handle_response: {str(e)}")
+        finally:
+            self.statusBar().showMessage('Ready')
+            self.send_button.setEnabled(True)
+            self.user_input.setEnabled(True)
+            self.worker = None  # Clear the worker reference
 
     def handle_error(self, error_message):
-        self.chat_display.append(f"\nError: {error_message}\n")
-        self.statusBar().showMessage('Error occurred')
-        self.send_button.setEnabled(True)
+        try:
+            html_content = self.chat_display.toHtml()
+            html_content += f'<br><div style="color: #FF0000; white-space: pre-wrap;">Error: {error_message}</div><br>'
+            self.chat_display.setHtml(html_content)
+            self.chat_display.verticalScrollBar().setValue(
+                self.chat_display.verticalScrollBar().maximum()
+            )  # Scroll to bottom
+        except Exception as e:
+            print(f"Error in handle_error: {str(e)}")
+        finally:
+            self.statusBar().showMessage('Error occurred')
+            self.send_button.setEnabled(True)
+            self.user_input.setEnabled(True)
+            self.worker = None  # Clear the worker reference
 
 def main():
     app = QApplication(sys.argv)
