@@ -49,7 +49,7 @@ pip install anthropic openai google-generativeai PyQt5
 
 ## Configuration
 
-Before running the application, make sure to set up your API keys in the `mixai.py` file:
+Before running the application, make sure to set up your API keys in the lines 33/34/35 of `mixai.py` file:
 
 ```python
 self.claude = anthropic.Anthropic(api_key="your-anthropic-api-key")
