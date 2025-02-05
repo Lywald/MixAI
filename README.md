@@ -8,7 +8,7 @@ MixAI is a desktop application that enables simultaneous interaction with multip
 ## Features
 
 - **Multi-Model Integration**: Seamlessly interact with Claude (Anthropic), GPT-4 (OpenAI), and Gemini (Google) in a single interface
-- **Targeted Interactions**: Use @claude, @gpt, or @gemini to direct questions to specific AI models
+- **Targeted Interactions**: Use @all, @claude, @gpt, or @gemini to direct questions to specific AI models
 - **Concurrent Processing**: Asynchronous message processing for smooth user experience
 - **Conversation History**: Full context preservation across all AI models
 - **Clean Qt-based GUI**: Modern, responsive desktop interface
