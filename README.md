@@ -29,8 +29,8 @@ MixAI is a desktop application that enables simultaneous interaction with multip
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/mixai.git
-cd mixai
+git clone https://github.com/Lywald/MixAI.git
+cd MixAI
 ```
 
 2. Create and activate a virtual environment (recommended):
